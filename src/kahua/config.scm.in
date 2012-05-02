@@ -373,26 +373,34 @@
     (get-keyword :value props)))
 
 (define (kahua-site-create path . args)
-  (let-keywords* args ((owner #f)
-		       (group #f)
-		       (shared? #f))
-    (make-directory* (abs-path ".." (sys-normalize-pathname path :absolute #t :expand #t)))
+  (let-keywords* args 
+    ((owner #f)
+     (group #f)
+     (shared? #f))
+    (make-directory*
+      (abs-path ".." (sys-normalize-pathname path :absolute #t :expand #t)))
     (let1 old-umask (sys-umask 0)
-      (for-each (lambda (e)
-		  (let* ((e (cdr e))
-			 (target (get-keyword :value e))
-			 (create (get-keyword :creator e))
-			 (mode (if shared?
-				   (get-keyword :shared-mode e)
-				   (get-keyword :private-mode e))))
-		    (create target path mode)
-		    (sys-chown (abs-path target path)
-			       (if owner (sys-user-name->uid owner) -1)
-			       (if group (sys-group-name->gid group) -1))))
-		(sort *default-site-structure*
+      (for-each
+        (lambda (e)
+		      (let*
+            ((e (cdr e))
+			       (target (get-keyword :value e))
+			       (create (get-keyword :creator e))
+			       (mode (if shared?
+			    	   (get-keyword :shared-mode e)
+			    	   (get-keyword :private-mode e))))
+		        (create target path mode)
+		        (sys-chown (abs-path target path)
+			           (if owner (sys-user-name->uid owner) -1)
+			           (if group (sys-group-name->gid group) -1))
+		        (if shared?
+              (sys-chmod (abs-path target path)
+			           (if group 4650 4655)))))
+		    (sort *default-site-structure*
 		      (lambda (a b)
-			(string<? (get-keyword :value (cdr a))
-				  (get-keyword :value (cdr b))))))
+            (string<?
+              (get-keyword :value (cdr a))
+              (get-keyword :value (cdr b))))))
       (sys-umask old-umask))))
 
 (define (kahua-site-init site-path . maybe-conf-file)
