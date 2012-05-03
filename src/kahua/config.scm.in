@@ -332,10 +332,18 @@
   (make-directory* (abs-path dir site) mode)
   (sys-chmod (abs-path dir site) mode))
 
+(define (create-cgi-htaccess file site mode)
+  (with-output-to-file (abs-path file site)
+    (lambda ()
+      (display "Options +ExecCGI\nSetHandler cgi-script"))
+    :mode mode))
+
 ;; Default Site Bundle Structure
 (define-constant *default-site-structure*
   `((working-directory     :value "."
 			   :shared-mode #o751 :private-mode #o711 :creator ,create-site-child-dir)
+    (kahua-root            :value ".kahua"
+         :shared-mode #o550 :private-mode #o500 :creator ,create-site-child-dir)
     (sockbase              :value "socket"
 			   :shared-mode #o2770 :private-mode #o700 :creator ,create-site-child-dir)
     (app-servers           :value "app-servers"
@@ -351,10 +359,12 @@
     (data-directory        :value "data"
 			   :shared-mode #o770 :private-mode #o700 :creator ,create-site-child-dir)
     (temporary-directory   :value "tmp"
-			   :shared-mode #o770 :private-mode #o700 :creator ,create-site-child-dir)
+			   :shared-mode #o2770 :private-mode #o700 :creator ,create-site-child-dir)
     (log-directory         :value "logs"
 			   :shared-mode #o750 :private-mode #o700 :creator ,create-site-child-dir)
     (cgilog-directory      :value "cgilogs"
+			   :shared-mode #o770 :private-mode #o700 :creator ,create-site-child-dir)
+    (cgi-directory         :value "cgi"
 			   :shared-mode #o770 :private-mode #o700 :creator ,create-site-child-dir)
     (run-directory         :value "run"
 			   :shared-mode #o750 :private-mode #o700 :creator ,create-site-child-dir)
@@ -366,7 +376,13 @@
 			   :shared-mode #o660 :private-mode #o600 :creator ,create-site-userconf)
     (config-file           :value "etc/kahua.conf"
 			   :shared-mode #o660 :private-mode #o600 :creator ,create-site-config)
-    ))
+    (cgi-bridge            :value "cgi/index.cgi"
+         :shared-mode #o750 :private-mode #o700
+         :creator ,(lambda (file site mode)
+           (copy-file "##KAHUA_LIBEXECDIR##/kahua/kahua.cgi" (abs-path file site))
+           (sys-chmod (abs-path file site) mode)))
+    (cgi-htaccess           :value "cgi/.htaccess"
+         :shared-mode #o640 :private-mode #o600 :creator ,create-cgi-htaccess)))
 
 (define (site-default name)
   (and-let* ((l (assq name *default-site-structure*))
@@ -378,8 +394,6 @@
     ((owner #f)
      (group #f)
      (shared? #f))
-    (make-directory*
-      (abs-path ".." (sys-normalize-pathname path :absolute #t :expand #t)))
     (let1 old-umask (sys-umask 0)
       (for-each
         (lambda (e)
@@ -423,9 +437,21 @@
       c)))
 
 (define (kahua-common-init site . maybe-conf-file)
-  (or (and-let* ((site (or site (sys-getenv "KAHUA_DEFAULT_SITE"))))
-	(apply kahua-site-init site maybe-conf-file))
-      (error "Site bundle must be specified by -S option or KAHUA_DEFAULT_SITE environment.")))
+  (or
+    (and-let*
+      ((site (or site
+                 (find-kahua-root-directory)
+                 (sys-getenv "KAHUA_DEFAULT_SITE"))))
+   	  (apply kahua-site-init site maybe-conf-file))
+    (error "Not in kahua directory.")))
+
+(define (find-kahua-root-directory)
+  (let loop ((dir (current-directory)))
+    (if (file-is-directory? (build-path dir ".kahua"))
+      dir
+      (and
+        (not (file-eqv? (build-path dir 'up) (build-path dir 'same)))
+        (loop (build-path dir 'up))))))
 
 (provide "kahua/config")
 

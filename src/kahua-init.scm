@@ -13,27 +13,22 @@
 ;; create site bundle
 ;;
 
-(define (init-site args)
-  (let-args args
-    ((shared "shared")
+(define (main args)
+  (let-args (cdr args)
+    ((gosh "gosh=s")
+     (shared "shared")
      (private "private")
      (owner "o|owner=s")
      (group "g|group=s")
+     (help "help|usage")
      . sites)
-    (if (null? sites)
-      (usage)
-      (for-each (cut kahua-site-create <> :owner owner :group group :shared? shared) sites))))
-
-(define (main args)
-  (let-args (cdr args)
-    ((conf-file "c|conf-file=s")
-     (site "S|site=s")
-     (gosh "gosh=s")
-     . restargs)
-    (init-site restargs)))
+    (cond 
+      (help (usage))
+      ((null? sites) (kahua-site-create "." :owner owner :group group :shared? shared))
+      (else (for-each (cut kahua-site-create <> :owner owner :group group :shared? shared) sites)))))
 
 (define (usage)
   (with-output-to-port (current-error-port)
     (lambda ()
-      (display "usage: kahua-init [-shared|-private] [-owner=<owner>] [-group=<group>] <site-to-path>\n"))
-    (exit)))
+      (display "usage: kahua-init [-shared|-private] [-owner=<owner>] [-group=<group>] <site-to-path>\n")
+      (exit))))
