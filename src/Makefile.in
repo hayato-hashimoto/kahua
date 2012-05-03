@@ -85,34 +85,8 @@ CONFIG_GENERATED = Makefile
 
 all: $(GENERATED)
 
-$(SH_SCRIPTS) : make-script.scm
-
-kahua-admin :
-	$(MAKE_SH_SCRIPT) kahua-admin
-
-kahua-spvr :
-	$(MAKE_SH_SCRIPT) kahua-spvr
-
-kahua-install :
-	$(MAKE_SH_SCRIPT) kahua-install
-
-kahua-shell :
-	$(MAKE_SH_SCRIPT) kahua-shell
-
-kahua-httpd :
-	$(MAKE_SH_SCRIPT) kahua-httpd
-
-kahua-dbutil :
-	$(MAKE_SH_SCRIPT) kahua-dbutil
-
-kahua-config :
-	$(MAKE_SH_SCRIPT) kahua-config
-
-kahua-package :
-	$(MAKE_SH_SCRIPT) kahua-package
-
-kahua-user :
-	$(MAKE_SH_SCRIPT) kahua-user
+$(SH_SCRIPTS) : % : make-script.scm
+	$(MAKE_SH_SCRIPT) $@
 
 kahua/config.scm: kahua/config.scm.in
 	test ! -f $@ || chmod +w $@
