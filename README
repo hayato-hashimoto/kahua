@@ -3,6 +3,11 @@
 ;;  Copyright (c) 2003-2007 Scheme Arts, L.L.C., All rights reserved.
 ;;  Copyright (c) 2003-2007 Time Intermedia Corporation, All rights reserved.
 ;;
+;;  
+
+* About this fork
+
+  visit http://github.com/insanity/kahua/wiki/
 
 * About Kahua
 
@@ -78,4 +83,5 @@ We need your help to make Kahua better.  Even if you're not a
 programmer, bug reports and suggestions are also welcome.
 
 Feel free to contact us <info@kahua.org> .
+
 

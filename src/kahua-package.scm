@@ -144,13 +144,56 @@
 		  . sites)
     (for-each (cut kahua-site-create <> :owner owner :group group :shared? shared) sites)))
 
+(define (install-packages args)
+  (let-args args
+    ((site "S|site=s")
+     (conf-file "c|conf-file=s")
+     (sync "sync")
+      . packages)
+    (kahua-common-init site conf-file)
+    (if sync (apply sync-packages packages))
+    (for-each
+      (lambda (package)
+        (sys-system (format
+          "export pkg=~a; mkdir -p \"/tmp/kahua-package-tmp-dir/$pkg\" \\
+                             && cd \"/tmp/kahua-package-tmp-dir/$pkg\" \\
+                             && cp -r \"~a/packages/$pkg/package\" .   \\
+                             && cd package \\
+                             && ./DIST gen && ./configure --with-site-bundle=~a && make && make install"
+          package
+          (kahua-repository-dir)
+          (kahua-site-root))))
+      packages)))
+
+(define (sync-packages args)
+  (let-args args
+    ((site "S|site=s")
+     (conf-file "c|conf-file=s")
+     (sync "sync")
+      . packages)
+    (kahua-common-init site conf-file)
+    (for-each
+      (lambda (package)
+        (sys-system (format
+          "export pkg=~a; export repodir=~a; PKGDIR=\"$repodir/packages/$pkg\" \"$repodir/build-scripts/$pkg/pkgbuild\""
+          package
+          (kahua-repository-dir))))
+      packages)))
+
+(define (sync-repository args)
+  (error "not implemented"))
+
 ;;
 ;; main
 ;;
 
 (define *command-table*
   `(("create" ,create-site "create [-shared|-private] [-owner=<owner>] [-group=<group>] <site-to-path>")
-    ("generate" ,generate-skel "generate [-creator=<creator>] [-mail=<mail@addr>] <project> ...")))
+    ("generate" ,generate-skel "generate [-creator=<creator>] [-mail=<mail@addr>] <project> ...")
+    ("install" ,install-packages "install [-sync] [-S site] [-c conf] <package> ...")
+    ("sync" ,sync-packages "sync <package> ...")
+    ("update" ,sync-repository "update")
+    ))
 
 (define (dispatch-command cmd . args)
   (cond ((assoc cmd *command-table*) => (lambda (e) ((cadr e) args)))

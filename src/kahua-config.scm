@@ -15,6 +15,7 @@
       ((site "S=s")
        (conf-file "c=s")
        (gosh      "gosh=s")
+       (version   "version" => version)
        (help      "h|help" => usage) . args)
     (kahua-common-init site conf-file)
     (let* ((conf (kahua-config))
@@ -27,7 +28,7 @@
       (cond ((null? args)
 	     (for-each (lambda (slot len)
 			 (format #t "~a:" slot)
-			 (display (make-string (- (+ max-len 4) len) #\sp))
+			 (display (make-string (- (+ max-len 4) len) #\space))
 			 (format #t "~a~%" (ref conf slot)))
 		       slots lens))
 	    (else
@@ -42,3 +43,7 @@
 	      (map car (ref (class-of conf) 'slots))))
   (exit 0))
 
+(define (version)
+  (display (kahua-version-info))
+  (newline)
+  (exit))

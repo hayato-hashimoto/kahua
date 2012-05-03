@@ -63,6 +63,14 @@ are not installed automatically.  Default: $libexecdir/kahua]),
   ])
 AC_SUBST(KAHUA_CGIDIR)
 
+KAHUA_REPODIR=/usr/local/share/kahua/repository
+AC_ARG_WITH(repodir,
+  AC_HELP_STRING([--with-repodir=PATH],
+    [Specifies the directory where Kahua packages should be 
+stored. Default: $prefix/share/kahua/repository]),
+    [ KAHUA_REPODIR=$with_repodir ])
+AC_SUBST(KAHUA_REPODIR)
+
 FASTCGI_EXT=fcg
 AC_ARG_WITH(fastcgi-ext,
   AC_HELP_STRING([--with-fastcgi-ext=EXT],
@@ -107,6 +115,7 @@ AC_OUTPUT(Makefile
           src/Makefile 
           doc/Modules/Makefile
           cgi/Makefile 
+          repository/Makefile 
           emacs/Makefile
           plugins/Makefile
           test/Makefile)

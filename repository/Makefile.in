@@ -1,0 +1,9 @@
+INSTALL=@GAUCHE_INSTALL@
+KAHUA_REPODIR=@KAHUA_REPODIR@
+
+.PHONY: all install
+all:
+install:
+	mkdir -p $(KAHUA_REPODIR)/build-scripts
+	mkdir -p $(KAHUA_REPODIR)/packages
+	$(INSTALL) -m 0644 repository.lst $(KAHUA_REPODIR) 

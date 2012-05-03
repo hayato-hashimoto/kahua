@@ -151,32 +151,34 @@
 
 (define (update-worker-files wtype . files)
   (let* ((workers (send-command #f '(ls)))
-         (the-worker (find (lambda (w)
-                             (eqv? (get-keyword :worker-type w) wtype))
-                           workers)))
+         (the-worker
+           (find (lambda (w)
+                   (eqv? (get-keyword :worker-type w) wtype))
+                 workers)))
     (if the-worker
-	(begin
-	  (display (caddr (send-command (get-keyword :worker-id the-worker) 
-				      '(update-server))))
-	  (newline))
-        (format #t "No such worker: ~a\n" wtype)))
+      (begin
+        (display
+          (caddr (send-command
+                   (get-keyword :worker-id the-worker) 
+                   '(reload))))
+	(newline))
+      (format #t "No such worker: ~a\n" wtype)))
   spvr-command-processor)
 
 (define (update-command t/c . files)
   (let* ((workers (send-command #f '(ls)))
-	 (targets (filter
-		   (lambda (w)
-		     (or (eqv? (get-keyword :worker-type w) t/c)
-			 (eqv? (get-keyword :worker-count w) t/c)))
-		   workers)))
+	 (targets
+          (filter (lambda (w)
+		    (or (eqv? (get-keyword :worker-type w) t/c)
+			(eqv? (get-keyword :worker-count w) t/c)))
+		  workers)))
     (if (null? targets)
 	(format #t "No such worker: ~a\n" t/c)
 	(for-each (lambda (w)
 		    (let* ((wid   (get-keyword :worker-id w))
 			   (wtype (get-keyword :worker-type w))
 			   (fs    (map (cut symbol->string <>) files))
-			   (ans   (send-command wid
-						`(update-server ,@fs))))
+			   (ans   (send-command wid `(reload ,@fs))))
 		      (if (equal? (caddr ans) "#f")
 			  (begin
 			    (format #t "update failed: ~a(~a)\n" wtype wid)

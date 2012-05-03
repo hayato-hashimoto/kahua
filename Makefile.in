@@ -37,6 +37,7 @@ distclean : clean
 install :
 	cd src; $(MAKE) install
 	cd cgi; $(MAKE) install
+	cd repository; $(MAKE) install
 	cd plugins; $(MAKE) install
 
 # Run "make install-examples" AFTER "make install" and editing kahua.conf.

@@ -27,7 +27,7 @@
 
 	  ;; Global Accessor
 	  kahua-site-root
-          kahua-sockbase
+    kahua-sockbase
 	  kahua-working-directory
 	  kahua-app-servers
 	  kahua-application-directory
@@ -42,10 +42,11 @@
 	  kahua-etc-directory
 	  kahua-default-database-name
 	  kahua-error-document-alist
+    kahua-repository-dir
 
 	  ;; Global Getter
-          kahua-timeout-mins
-          kahua-userconf-file
+    kahua-timeout-mins
+    kahua-userconf-file
 	  kahua-auto-restart
 	  kahua-secure-sandbox
 	  kahua-spvr-concurrency
@@ -81,7 +82,8 @@
 (define (kahua-version) "##KAHUA_VERSION##")
 (define (kahua-revision) "r##KAHUA_REVISION##")
 
-(define-constant *kahua-static-document-url-default* "/##package##")
+(define-constant *kahua-static-document-url-default* "static")
+(define-constant *kahua-repository-dir-default* "##KAHUA_REPODIR##")
 
 (define kahua-config (make-parameter #f))
 
@@ -159,9 +161,12 @@
    ;;  alist of (integer . string)
    (error-document-alist :init-keyword :error-document-alist :init-value '())
 
+   (repository-dir :init-keyword :repository-dir :init-value *kahua-repository-dir-default*)
+
    ;; internal
    (user-mode :init-value #f)
    (config-file :init-value #f :init-keyword :config-file :place :site :read-only #t)
+
    ))
 
 (define-class <kahua-config-meta> (<class>) ())
@@ -227,7 +232,8 @@
 	      etc-directory
 	      default-database-name
 	      auto-restart
-	      error-document-alist)
+	      error-document-alist
+        repository-dir)
 
 ;; Define global getter
 (define-macro (define-kahua-config-getter name)
