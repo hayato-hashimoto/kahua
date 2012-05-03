@@ -873,7 +873,7 @@
 ;; Alias
 (define kall/cc kahua-call-with-current-context)
 
-(define-syntax regist-entry-method
+(define-syntax register-entry-method
   (syntax-rules ()
     ((_ name)
      (begin
@@ -893,9 +893,8 @@
     ((_ "finish" name pargs kargs body)
      (begin
        (define-method-rule name pargs
-         ((entry-lambda kargs
-            . body)))
-       (regist-entry-method name)))
+         ((entry-lambda kargs . body)))
+       (register-entry-method name)))
     ;; add entry specializer
     ((_ "specilize" name pargs kargs body)
      (define-entry-method "finish" name ((_ <entry-method>) . pargs) kargs body))
