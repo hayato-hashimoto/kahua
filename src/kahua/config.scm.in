@@ -329,14 +329,15 @@
     :mode mode))
 
 (define (create-site-child-dir dir site mode)
-  (make-directory* (abs-path dir site) mode))
+  (make-directory* (abs-path dir site) mode)
+  (sys-chmod (abs-path dir site) mode))
 
 ;; Default Site Bundle Structure
 (define-constant *default-site-structure*
-  `((working-directory     :value ""
+  `((working-directory     :value "."
 			   :shared-mode #o751 :private-mode #o711 :creator ,create-site-child-dir)
     (sockbase              :value "socket"
-			   :shared-mode #o770 :private-mode #o700 :creator ,create-site-child-dir)
+			   :shared-mode #o2770 :private-mode #o700 :creator ,create-site-child-dir)
     (app-servers           :value "app-servers"
 			   :shared-mode #o640 :private-mode #o600 :creator ,create-site-app-servers)
     (application-directory :value "app"
@@ -392,10 +393,7 @@
 		        (create target path mode)
 		        (sys-chown (abs-path target path)
 			           (if owner (sys-user-name->uid owner) -1)
-			           (if group (sys-group-name->gid group) -1))
-		        (if shared?
-              (sys-chmod (abs-path target path)
-			           (if group 4650 4655)))))
+			           (if group (sys-group-name->gid group) -1))))
 		    (sort *default-site-structure*
 		      (lambda (a b)
             (string<?
