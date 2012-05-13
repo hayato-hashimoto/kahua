@@ -255,8 +255,8 @@
 (define (abs-path path base)
   (if (absolute-path? path)
       (simplify-path path)
-      (let1 path (simplify-path (expand-path path))
-	(simplify-path (if (absolute-path? path) path (build-path base path))))))
+      (let1 path (sys-normalize-pathname (expand-path path))
+        (sys-normalize-pathname (if (absolute-path? path) path (build-path base path))))))
 
 (define (sockbase-abs-path sockbase base)
   (rxmatch-case sockbase
