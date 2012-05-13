@@ -154,15 +154,18 @@
     (if sync (apply sync-packages packages))
     (for-each
       (lambda (package)
-        (sys-system (format
-          "export pkg=~a; mkdir -p \"/tmp/kahua-package-tmp-dir/$pkg\" \\
-                             && cd \"/tmp/kahua-package-tmp-dir/$pkg\" \\
-                             && cp -r \"~a/packages/$pkg/package\" .   \\
-                             && cd package \\
-                             && ./DIST gen && ./configure --with-site-bundle=~a && make && make install"
-          package
-          (kahua-repository-dir)
-          (kahua-site-root))))
+        (let ((status (sys-system (format
+                      "export pkg=~a; mkdir -p \"/tmp/kahua-package-tmp-dir/$pkg\" \\
+                                         && cd \"/tmp/kahua-package-tmp-dir/$pkg\" \\
+                                         && cp -r \"~a/packages/$pkg/package\" .   \\
+                                         && cd package && ./DIST gen \\
+                                         && ./configure --with-site-bundle=~a \\
+                                         && make && make install"
+                      package
+                      (kahua-repository-dir)
+                      (kahua-site-root)))))
+         (if (not (zero? status))
+           (print "please exec 'kahua-package sync <package>' first. also try 'kahua-package clean <package>'."))))
       packages)))
 
 (define (sync-packages args)
@@ -173,11 +176,25 @@
       . packages)
     (kahua-common-init site conf-file)
     (for-each
-      (lambda (package)
-        (sys-system (format
-          "export pkg=~a; export repodir=~a; PKGDIR=\"$repodir/packages/$pkg\" \"$repodir/build-scripts/$pkg/pkgbuild\""
-          package
-          (kahua-repository-dir))))
+      (lambda (package-name)
+        (let ((target-dir (build-path (kahua-repository-dir) "packages" package-name))
+              (build-script-dir (build-path (kahua-repository-dir) "build-scripts" package-name)))
+          (make-directory* target-dir)
+          (sys-system (format "PKGDIR=\"~a\" \"~a/pkgbuild\"" target-dir build-script-dir))))
+      packages)))
+
+(define (clean-packages args)
+  (let-args args
+    ((site "S|site=s")
+     (conf-file "c|conf-file=s")
+     (sync "sync")
+      . packages)
+    (kahua-common-init site conf-file)
+    (for-each
+      (lambda (package-name)
+        (if (not (string-null? package-name))
+          (let ((target-dir (build-path (kahua-repository-dir) "packages" package-name)))
+            (sys-system (format "rm -r \"~a\"" target-dir)))))
       packages)))
 
 (define (sync-repository args)
@@ -188,11 +205,12 @@
 ;;
 
 (define *command-table*
-  `(("create" ,create-site "create [-shared|-private] [-owner=<owner>] [-group=<group>] <site-to-path>")
-    ("generate" ,generate-skel "generate [-creator=<creator>] [-mail=<mail@addr>] <project> ...")
-    ("install" ,install-packages "install [-sync] [-S site] [-c conf] <package> ...")
+  `(("generate" ,generate-skel "generate [-creator=<creator>] [-mail=<mail@addr>] <project> ...")
     ("sync" ,sync-packages "sync <package> ...")
+    ("install" ,install-packages "install [-sync] [-S site] [-c conf] <package> ...")
+    ("clean" ,clean-packages "sync <package> ...")
     ("update" ,sync-repository "update")
+    ("create" ,create-site "create ... <**deprecated**, use kahua-init instead>")
     ))
 
 (define (dispatch-command cmd . args)

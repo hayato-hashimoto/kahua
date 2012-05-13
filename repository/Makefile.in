@@ -4,6 +4,7 @@ KAHUA_REPODIR=@KAHUA_REPODIR@
 .PHONY: all install
 all:
 install:
-	mkdir -p $(KAHUA_REPODIR)/build-scripts
+	mkdir -p $(KAHUA_REPODIR)/build-scripts/kagoiri-musume
 	mkdir -p $(KAHUA_REPODIR)/packages
 	$(INSTALL) -m 0644 repository.lst $(KAHUA_REPODIR) 
+	$(INSTALL) -m 0755 build-scripts/kagoiri-musume/pkgbuild $(KAHUA_REPODIR)/build-scripts/kagoiri-musume

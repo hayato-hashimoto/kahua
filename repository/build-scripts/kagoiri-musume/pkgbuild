@@ -1,0 +1,4 @@
+mkdir -p $PKGDIR
+cd $PKGDIR
+svn checkout http://svn.kahua.org/kagoiri-musume/trunk
+mv trunk package
